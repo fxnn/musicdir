@@ -7,29 +7,51 @@ import sys
 import scanner
 import handler
 
-def main():
-    handlers = handler.Handlers()
-    handlers.add_handler(handler.PrintHandler())
+class Application:
+    args = {}
 
-    parser = argparse.ArgumentParser(description='Scan and alter music directories.')
-    parser.add_argument('basedir', help='The directory to work on')
-    args = parser.parse_args()
+    def __init__(self):
+        self.args = self.parse_args()
 
-    basedir=os.path.abspath(args.basedir)
-    musicdirs=scanner.scan_dir(basedir)
+    def run(self):
 
-    for m in musicdirs:
-        if m.contains_music():
-            handlers.handleDirectoryWithMusicFiles(m)
-        elif not m.contains_dirs():
-            if m.contains_files():
-                handlers.handleDirectoryWithoutMusicFiles(m)
-            else:
-                handlers.handleEmptyDirectory(m)
+        music_dirs = self.scan()
+        handlers = self.create_handlers()
 
-    return 0
+        self.apply_handlers(music_dirs, handlers)
+
+        return 0
+
+    def parse_args(self):
+        parser = argparse.ArgumentParser(description='Scan and alter music directories.')
+        parser.add_argument('basedir', help='The directory to work on')
+        parser.add_argument('-p', '--print', action='store_true')
+        parser.add_argument('-v', '--verbose', action='store_true')
+        return vars(parser.parse_args())
+
+    def scan(self):
+        basedir=os.path.abspath(self.args['basedir'])
+        return scanner.scan_dir(basedir)
+
+    def create_handlers(self):
+        handlers = handler.Handlers()
+        if self.args['print'] or self.args['verbose']:
+            handlers.append(handler.PrintHandler())
+            if self.args['verbose']:
+                handlers.append(handler.VerbosePrintHandler())
+        return handlers
+
+    def apply_handlers(self, music_dirs, handlers):
+        for m in music_dirs:
+            if m.contains_music():
+                handlers.handleDirectoryWithMusicFiles(m)
+            elif not m.contains_dirs():
+                if m.contains_files():
+                    handlers.handleDirectoryWithoutMusicFiles(m)
+                else:
+                    handlers.handleEmptyDirectory(m)
 
 if __name__ == '__main__':
-    status = main()
+    status = Application().run()
     sys.exit(status)
 

@@ -21,7 +21,7 @@ class VerbosePrintHandler(PrintHandler):
 class Handlers(Handler):
     handlerList = []
 
-    def add_handler(self, handler):
+    def append(self, handler):
         self.handlerList.append(handler)
 
     def handleEmptyDirectory(self, musicDir):
