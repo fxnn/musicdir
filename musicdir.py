@@ -17,6 +17,8 @@ class MusicDir:
             self.extensions.add(extension[1:].lower())
     def add_dir(self, dirname):
         self.dirs.add(dirname)
+    def get_abspath(self):
+        return self.abspath
     def contains_files(self):
         return len(self.files)>0
     def contains_music(self):
